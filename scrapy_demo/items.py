@@ -21,3 +21,4 @@ class DoubanListItem(scrapy.Item):
     type = scrapy.Field()
     area = scrapy.Field()
     director = scrapy.Field()
+    year = scrapy.Field()

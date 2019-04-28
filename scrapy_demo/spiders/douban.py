@@ -2,12 +2,12 @@
 import scrapy
 from scrapy.http import Request
 from ..items import DoubanListItem
-
+import re
 
 class DoubanSpider(scrapy.Spider):
     name = 'douban'
     allowed_domains = ['douban.com']
-    start_urls = ['https://www.douban.com/doulist/706287']
+    start_urls = ['https://www.douban.com/doulist/493021']
 
     def parse(self, response):
         movies = response.css('.doulist-item')
@@ -37,12 +37,21 @@ class DoubanSpider(scrapy.Spider):
             # 获取图片地址
             img_url = movie.css('.post img::attr(href)').extract()
             # 获取详情
-            info = movie.css('.abstract::text').extract()
-            for i in len(info):
-                info[i] = info[i].strip().replace('\n', '')
-            print(info)
+            info_lst = movie.css('.abstract::text').extract()
+            info_dic = dict()
+            # 去掉空格和换行符信息
+            for i in range(len(info_lst)):
+                info_one = info_lst[i].strip().replace('\n', '')
+                reg = re.search('(.*?): (.*?$)', info_one, re.S)
+                key_name = reg.group(1).encode('utf-8')
+                key_val = reg.group(2)
+                info_dic[key_name] = key_val
+                print(reg.group(1))
             item['name'] = title
             item['img_url'] = img_url
+            item['director'] = info_dic['导演'.decode('utf-8')]
+            item['area'] = info_dic['制片国家/地区'.decode('utf-8')]
+            item['year'] = info_dic['年份'.decode('utf-8')]
 
         # 检查有没有下一页 有的话 继续查找
         next_url = response.css('.next a::attr(href)').extract_first("")
